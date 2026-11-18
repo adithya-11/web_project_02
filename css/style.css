@@ -1,0 +1,8 @@
+* { box-sizing: border-box; }
+body { margin: 0; font: 1rem/1.55 system-ui, sans-serif; }
+.site-header, main, .site-footer { max-width: 72rem; margin-inline: auto; padding: 1rem; }
+.site-header, nav { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.site-header { justify-content: space-between; }
+.skip-link { position: absolute; top: -10rem; }
+.skip-link:focus { top: 0; background: white; color: black; z-index: 10; }
+:focus-visible { outline: 3px solid #1566ad; outline-offset: 3px; }
