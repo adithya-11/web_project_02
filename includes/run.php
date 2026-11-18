@@ -18,6 +18,7 @@ function new_room(int $tier, int $enteredAt): array
 
 function start_run(int $now): void
 {
+    unset($_SESSION['door_open'], $_SESSION['room_feedback']);
     $_SESSION['run'] = [
         'id' => bin2hex(random_bytes(16)),
         'seed' => bin2hex(random_bytes(32)),
