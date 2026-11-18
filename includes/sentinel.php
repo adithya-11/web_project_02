@@ -124,3 +124,53 @@ function sentinel_feedback(array $puzzle, int|string $answer, int $tier): string
     $right = 9 - substr_count(decbin(((int) $answer ^ $puzzle['answer']) & 511), '1');
     return $right . ' of 9 cells are right.';
 }
+
+/* ---------- Graduate extension: adaptive tiers ---------- */
+
+function sentinel_next_tier(int $tier, int $seconds, int $wrong, int $hints, int $room = 1): array
+{
+    $plural = static fn (int $n, string $word): string => $n . ' ' . $word . ($n === 1 ? '' : 's');
+
+    if ($seconds < 60 && $hints === 0 && $wrong <= 1) {
+        $next = min(3, $tier + 1);
+        $reason = 'you cleared Room ' . $room . ' in ' . $seconds . ' seconds without hints'
+            . ($wrong === 1 ? ' and with only one mistake' : '');
+        $direction = $next > $tier ? 'up' : 'max';
+    } elseif ($seconds > 180 || $hints >= 2 || $wrong >= 4) {
+        $next = max(1, $tier - 1);
+        $causes = [];
+        if ($seconds > 180) {
+            $causes[] = 'Room ' . $room . ' took you ' . format_time($seconds);
+        }
+        if ($hints >= 2) {
+            $causes[] = 'you used ' . $plural($hints, 'hint');
+        }
+        if ($wrong >= 4) {
+            $causes[] = 'you gave ' . $plural($wrong, 'wrong answer');
+        }
+        $last = array_pop($causes);
+        $reason = $causes === [] ? $last : implode(', ', $causes) . ' and ' . $last;
+        if ($seconds <= 180) {
+            $reason .= ' in Room ' . $room;
+        }
+        $direction = $next < $tier ? 'down' : 'min';
+    } else {
+        $next = $tier;
+        $reason = 'you solved Room ' . $room . ' in ' . format_time($seconds) . ' with '
+            . $plural($wrong, 'wrong answer') . ' and ' . $plural($hints, 'hint');
+        $direction = 'same';
+    }
+    return ['tier' => $next, 'reason' => $reason, 'direction' => $direction];
+}
+
+function sentinel_explain(int $nextRoom, array $decision): string
+{
+    $verb = match ($decision['direction']) {
+        'up' => 'moves up to Tier ' . $decision['tier'],
+        'down' => 'drops to Tier ' . $decision['tier'],
+        'max' => 'stays at Tier 3, the top tier,',
+        'min' => 'stays at Tier 1, the easiest tier,',
+        default => 'stays at Tier ' . $decision['tier'],
+    };
+    return 'Room ' . $nextRoom . ' ' . $verb . ' because ' . $decision['reason'] . '.';
+}

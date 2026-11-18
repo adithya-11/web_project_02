@@ -16,6 +16,7 @@ $number = $run['room'];
 $room = &$run['rooms'][$number];
 $puzzle = puzzle_for($run['seed'], $number, $room['tier']);
 $roomKey = $run['id'] . ':' . $number;
+$now = time();
 if (is_post()) {
     require_post();
     if (!hash_equals($roomKey, post_string('room_key'))) {
@@ -24,7 +25,16 @@ if (is_post()) {
 
     [$answer, $input] = read_answer($puzzle['type']);
     if ($answer === $puzzle['answer']) {
-        advance_run($run, time());
+        // Graduate extension: Sentinel picks the next room's tier from this room's play.
+        $nextTier = $room['tier'];
+        $change = null;
+        if ($number < count(ROOMS)) {
+            $decision = sentinel_next_tier($room['tier'], $now - $room['entered_at'], $room['wrong'], $room['hints'], $number);
+            $nextTier = $decision['tier'];
+            $change = ['direction' => $decision['direction'], 'text' => sentinel_explain($number + 1, $decision)];
+        }
+        unset($room);
+        advance_run($run, $now, $nextTier, $change);
         if ($run['finished_at'] !== null) {
             record_run($run, $_SESSION['user']);
         }
@@ -60,6 +70,9 @@ require __DIR__ . '/includes/header.php';
 <div class="split">
 <section class="panel<?= $doorOpen ? ' door-open' : '' ?>">
     <h2>Room <?= e($number) ?> of 3 · Tier <?= e($room['tier']) ?></h2>
+    <?php if (!empty($room['change'])): ?>
+        <p role="status"><strong>Sentinel:</strong> <?= e($room['change']['text']) ?></p>
+    <?php endif; ?>
     <?php if ($puzzle['type'] === 'number'): ?>
         <p>Find the next number in this sequence.</p>
         <p><strong><?= e(implode(', ', $puzzle['examples'])) ?></strong></p>

@@ -29,7 +29,7 @@ function start_run(int $now): void
     ];
 }
 
-function advance_run(array &$run, int $now, int $nextTier = 2): void
+function advance_run(array &$run, int $now, int $nextTier = 2, ?array $change = null): void
 {
     $room = $run['room'];
     $run['rooms'][$room]['solved_at'] = $now;
@@ -38,7 +38,7 @@ function advance_run(array &$run, int $now, int $nextTier = 2): void
         return;
     }
     $run['room']++;
-    $run['rooms'][$run['room']] = new_room($nextTier, $now);
+    $run['rooms'][$run['room']] = new_room($nextTier, $now) + ['change' => $change];
 }
 
 function run_destination(): string
@@ -50,7 +50,7 @@ function run_destination(): string
     if ($run['finished_at'] !== null) {
         return 'escape.php';
     }
-    return is_file(dirname(__DIR__) . '/room.php') ? 'room.php' : 'lobby.php';
+    return 'room.php';
 }
 
 function record_run(array $run, string $user): void
