@@ -275,7 +275,7 @@
     border-radius: 0.8rem;
     background: repeating-linear-gradient(-45deg, rgba(255, 114, 100, 0.08) 0 10px, transparent 10px 20px);
 }
-.lock p { margin: 0 0 0.75rem; }
+.lock p { margin: 0 0 0.75rem; padding-right: 2rem; }
 .lock__bar { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
 .lock__bar span {
     display: block;
@@ -619,3 +619,395 @@ body[data-theme="contrast"] .score-big__value { background: none; color: var(--g
 }
 
 body[data-theme="contrast"] .door-transition { background: #000; }
+
+/* ==========================================================================
+   Motion layer 2 · rooms
+   ========================================================================== */
+
+/* Each room has its own drifting backdrop text behind the title */
+.room-hero { position: relative; isolation: isolate; }
+.ambient {
+    position: absolute;
+    left: -1rem; right: -1rem; top: -0.5rem;
+    z-index: -1;
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+    mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent);
+}
+.ambient span {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: clamp(4rem, 14vw, 9rem);
+    font-weight: 700;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(241, 201, 124, 0.13);
+    animation: ambient-scroll 70s linear infinite;
+}
+.ambient--phrase span { letter-spacing: 0.2em; animation-duration: 90s; }
+.ambient--grid span { letter-spacing: 0.3em; animation-direction: reverse; }
+@keyframes ambient-scroll { to { transform: translateX(-50%); } }
+body[data-theme="contrast"] .ambient { display: none; }
+
+/* Sentinel's message types itself out */
+.typewriter {
+    display: inline;
+    background: linear-gradient(90deg, var(--text) 50%, transparent 50%) 100% 0 / 200% 100% no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: type-on 1.6s 0.5s steps(40) forwards;
+}
+@keyframes type-on { to { background-position: 0 0; } }
+body[data-theme="contrast"] .typewriter { background: none; color: var(--text); animation: none; }
+
+/* Red alarm flash after a wrong answer, stronger when the lock engages */
+.alarm-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    box-shadow: inset 0 0 160px 30px rgba(255, 70, 50, 0.55);
+    opacity: 0;
+    animation: alarm 900ms ease-out both;
+}
+.alarm-flash--lock { animation: alarm 700ms ease-out 3 both; }
+@keyframes alarm {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.lock { position: relative; overflow: hidden; animation: lock-pulse 1.4s ease-in-out infinite; }
+.lock__siren {
+    position: absolute;
+    right: 1rem; top: 1rem;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 0 0 rgba(255, 114, 100, 0.7);
+    animation: siren 1.1s ease-out infinite;
+}
+@keyframes siren { to { box-shadow: 0 0 0 18px rgba(255, 114, 100, 0); } }
+@keyframes lock-pulse {
+    0%, 100% { border-color: rgba(255, 114, 100, 0.45); }
+    50% { border-color: rgba(255, 114, 100, 1); box-shadow: 0 0 30px -8px rgba(255, 114, 100, 0.7); }
+}
+
+/* Clearance meter changes colour with the level */
+.meter--low .meter__track span {
+    background:
+        linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent) -100% 0 / 50% 100% no-repeat,
+        linear-gradient(90deg, #7a1d14, var(--danger));
+    box-shadow: 0 0 16px rgba(255, 114, 100, 0.6);
+}
+.meter--low .meter__label strong { color: var(--danger); animation: blink 1.2s steps(2) infinite; }
+.meter--high .meter__track span {
+    background:
+        linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent) -100% 0 / 50% 100% no-repeat,
+        linear-gradient(90deg, var(--gold), var(--ok));
+}
+@keyframes blink { 50% { opacity: 0.35; } }
+
+/* Ripple when a pattern cell is ticked */
+.toggle::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 2px solid var(--gold);
+    opacity: 0;
+    pointer-events: none;
+}
+.toggle:has(input:checked)::before { animation: cell-ring 600ms ease-out; }
+@keyframes cell-ring { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.6); } }
+
+/* Gold sparks bursting out once the door has opened */
+.burst-particles {
+    position: fixed;
+    left: 50%; top: 50%;
+    z-index: 49;
+    pointer-events: none;
+}
+.burst-particles i {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold-hi);
+    box-shadow: 0 0 12px 3px rgba(241, 201, 124, 0.9);
+    opacity: 0;
+    animation: spark 1.3s 2.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.burst-particles i:nth-child(3n) { width: 5px; height: 14px; border-radius: 3px; }
+@keyframes spark {
+    0% { opacity: 1; transform: rotate(var(--r)) translateY(0) scale(var(--s)); }
+    100% { opacity: 0; transform: rotate(var(--r)) translateY(calc(-14vmin - var(--y) * 0.35vmin)) scale(0.2); }
+}
+
+/* Confetti rain on the escape screen */
+.confetti {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    overflow: hidden;
+    pointer-events: none;
+}
+.confetti i {
+    position: absolute;
+    top: -5vh;
+    left: var(--x);
+    width: calc(7px * var(--s));
+    height: calc(14px * var(--s));
+    border-radius: 2px;
+    background: var(--gold);
+    opacity: 0;
+    animation: confetti-fall var(--t) calc(var(--d) + 1.6s) linear 3 both;
+}
+.confetti i[style*="--k:1"] { background: var(--gold-hi); }
+.confetti i[style*="--k:2"] { background: #fff; width: calc(5px * var(--s)); height: calc(5px * var(--s)); border-radius: 50%; }
+.confetti i[style*="--k:3"] { background: var(--gold-lo); }
+@keyframes confetti-fall {
+    0% { opacity: 1; transform: translate3d(0, 0, 0) rotate(var(--r)) rotateY(0); }
+    100% { opacity: 0.9; transform: translate3d(calc(var(--y) * 0.6px - 30px), 112vh, 0) rotate(calc(var(--r) + 540deg)) rotateY(720deg); }
+}
+
+/* Score counts up from zero */
+@property --score {
+    syntax: "<integer>";
+    initial-value: 0;
+    inherits: false;
+}
+.count-up {
+    --score: var(--to);
+    counter-reset: score var(--score);
+    animation: gilt 5s linear infinite, count-up 2.4s 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.count-up::after { content: counter(score); }
+@keyframes count-up { from { --score: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .ambient, .confetti, .burst-particles, .alarm-flash { display: none; }
+    .typewriter { animation: none !important; background-position: 0 0; }
+    .lock, .lock__siren, .meter--low .meter__label strong { animation: none !important; }
+}
+
+/* ==========================================================================
+   Motion layer 3 · real CSS 3D depth (no WebGL, no JavaScript)
+   ========================================================================== */
+
+/* ---------- Extruded vault door ---------- */
+.vault3d {
+    --s: 30rem;
+    position: relative;
+    width: var(--s);
+    height: var(--s);
+    perspective: 1400px;
+    pointer-events: none;
+}
+.vault3d__shadow {
+    position: absolute;
+    left: 12%; right: 12%; bottom: -12%;
+    height: 14%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.75), transparent);
+    filter: blur(6px);
+    animation: shadow-breathe 16s ease-in-out infinite alternate;
+}
+.vault3d__body {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    animation: vault-turn 16s ease-in-out infinite alternate;
+}
+@keyframes vault-turn {
+    from { transform: rotateX(12deg) rotateY(-34deg); }
+    to { transform: rotateX(4deg) rotateY(30deg); }
+}
+@keyframes shadow-breathe {
+    from { transform: translateX(-8%) scaleX(0.92); }
+    to { transform: translateX(8%) scaleX(1.05); }
+}
+.vault3d__slice, .vault3d__face, .vault3d__ring, .vault3d__bolts, .vault3d__axle, .vault3d__wheel {
+    position: absolute;
+    border-radius: 50%;
+}
+.vault3d__slice {
+    inset: 0;
+    transform: translateZ(var(--z));
+    background: radial-gradient(circle at 50% 50%, #3b2e18 0 60%, #1d160b 100%);
+    border: 3px solid #8a6c38;
+}
+.vault3d__face {
+    inset: 0;
+    transform: translateZ(2px);
+    background:
+        radial-gradient(circle at 34% 28%, rgba(255, 244, 214, 0.55) 0%, transparent 38%),
+        repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.05) 0deg 1deg, transparent 1deg 6deg),
+        radial-gradient(circle at 40% 35%, #b7965b 0%, #6b532d 42%, #2c2213 85%);
+    border: 6px solid #c9a45a;
+    box-shadow: inset 0 0 0 12px #5e4a29, inset 0 0 0 15px #1a140b, inset 0 0 60px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+}
+.vault3d__face::after {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 240, 200, 0.35) 50%, transparent 60%);
+    animation: sheen 6s ease-in-out infinite;
+}
+@keyframes sheen {
+    0%, 30% { transform: translateX(-70%); }
+    70%, 100% { transform: translateX(70%); }
+}
+.vault3d__ring {
+    inset: 15%;
+    transform: translateZ(10px);
+    border: 4px solid rgba(241, 201, 124, 0.55);
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0.28), inset 0 0 26px rgba(0, 0, 0, 0.6);
+}
+.vault3d__bolts {
+    inset: 4%;
+    transform: translateZ(6px);
+    background: repeating-conic-gradient(from 7deg, #e3c27c 0deg 4deg, transparent 4deg 45deg);
+    -webkit-mask-image: radial-gradient(circle, transparent 0 88%, #000 89% 96%, transparent 97%);
+    mask-image: radial-gradient(circle, transparent 0 88%, #000 89% 96%, transparent 97%);
+}
+.vault3d__axle {
+    inset: 44%;
+    transform: translateZ(var(--z));
+    background: #8b6a2e;
+    border: 2px solid #c9a45a;
+}
+.vault3d__wheel {
+    inset: 28%;
+    transform-style: preserve-3d;
+    transform: translateZ(42px);
+    border: 8px solid #e3c27c;
+    box-shadow: 0 0 30px rgba(241, 201, 124, 0.55), inset 0 0 18px rgba(0, 0, 0, 0.5);
+    animation: wheel-idle 22s linear infinite;
+}
+@keyframes wheel-idle {
+    from { transform: translateZ(42px) rotate(0deg); }
+    to { transform: translateZ(42px) rotate(360deg); }
+}
+.vault3d__wheel i {
+    position: absolute;
+    top: 50%; left: -16%;
+    width: 132%; height: 9%;
+    margin-top: -4.5%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fff1c9, #c9a45a 45%, #7a5b22);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
+}
+.vault3d__wheel i:nth-child(2) { transform: rotate(60deg); }
+.vault3d__wheel i:nth-child(3) { transform: rotate(120deg); }
+.vault3d__wheel b {
+    position: absolute;
+    inset: 36%;
+    border-radius: 50%;
+    transform: translateZ(10px);
+    background: radial-gradient(circle at 35% 30%, #fff8e0, #e3c27c 45%, #8b6a2e);
+    box-shadow: 0 0 24px rgba(241, 201, 124, 0.8);
+}
+
+/* The login panel is frosted glass in front of the vault */
+.auth-stage {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    isolation: isolate;
+}
+.auth-stage .vault3d {
+    position: absolute;
+    z-index: -1;
+    --s: 17rem;
+    top: -5rem;
+    right: -3rem;
+}
+.auth-stage .orbit { z-index: -2; top: 0; left: auto; right: -2rem; width: 22rem; height: 22rem; margin: -6rem 0 0 0; }
+.auth-stage .orbit--b { width: 28rem; height: 28rem; margin: -9rem -3rem 0 0; }
+.auth-stage .panel { background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 40%), rgba(12, 16, 22, 0.62); }
+@media (min-width: 960px) {
+    .auth-stage .vault3d { --s: 31rem; top: -7rem; right: -10rem; }
+    .auth-stage .orbit { width: 38rem; height: 38rem; margin: -10rem -14rem 0 0; }
+    .auth-stage .orbit--b { width: 46rem; height: 46rem; margin: -14rem -18rem 0 0; }
+}
+
+/* ---------- Entry Hall: room cards unfold in 3D ---------- */
+.room-map { perspective: 1100px; }
+.room-card {
+    transform-origin: 50% 0;
+    animation-name: card-unfold;
+    animation-duration: 900ms;
+}
+@keyframes card-unfold {
+    from { opacity: 0; transform: rotateX(-80deg) translateY(-10px); }
+    60% { opacity: 1; }
+    to { opacity: 1; transform: none; }
+}
+.team-grid { perspective: 1200px; }
+
+/* ---------- Escape: a spinning gold medal for the profile ---------- */
+.medal {
+    display: grid;
+    place-items: center;
+    margin: 0.5rem auto 1rem;
+    width: 8rem; height: 8rem;
+    perspective: 900px;
+}
+.medal__coin {
+    position: relative;
+    width: 7rem; height: 7rem;
+    transform-style: preserve-3d;
+    animation: coin-spin 7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes coin-spin {
+    0% { transform: rotateY(0deg) rotateX(8deg); }
+    40% { transform: rotateY(180deg) rotateX(-6deg); }
+    50% { transform: rotateY(180deg) rotateX(-6deg); }
+    90% { transform: rotateY(360deg) rotateX(8deg); }
+    100% { transform: rotateY(360deg) rotateX(8deg); }
+}
+.medal__edge, .medal__face {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+}
+.medal__edge { transform: translateZ(var(--z)); background: #8b6a2e; border: 2px solid #c9a45a; }
+.medal__face {
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #2a1c06;
+    background:
+        radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.7), transparent 40%),
+        radial-gradient(circle, #fff1c9 0%, #e3c27c 45%, #a9792b 100%);
+    box-shadow: inset 0 0 0 5px #c9a45a, inset 0 0 0 8px rgba(42, 28, 6, 0.35), 0 0 40px rgba(241, 201, 124, 0.5);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+.medal__face--front { transform: translateZ(7px); }
+.medal__face--back { transform: rotateY(180deg) translateZ(7px); font-family: var(--font-mono); font-size: 1.6rem; }
+
+@media (prefers-reduced-motion: reduce) {
+    .vault3d__body { animation: none !important; transform: rotateX(8deg) rotateY(-20deg); }
+    .vault3d__wheel { animation: none !important; transform: translateZ(42px); }
+    .vault3d__shadow, .vault3d__face::after, .medal__coin { animation: none !important; }
+}
+
+/* Forensics: rows slide in, the learned paragraph types on like a dossier */
+.forensics div { animation: slide-in 700ms var(--ease-out) both; }
+.forensics div:nth-child(1) { animation-delay: 1.2s; }
+.forensics div:nth-child(2) { animation-delay: 1.35s; }
+.forensics dd { text-align: end; }
+.learned {
+    position: relative;
+    padding: 1rem 1.1rem 1rem 1.4rem;
+    border-left: 2px solid var(--gold);
+    border-radius: 0 0.6rem 0.6rem 0;
+    background: rgba(241, 201, 124, 0.06);
+    animation: rise 800ms 1.5s var(--ease-out) both;
+}

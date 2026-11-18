@@ -4,8 +4,8 @@
 
 An escape game with three PHP-checked puzzle rooms, guarded by a rule-based AI called Sentinel that gives graded hints and adjusts each room to how the player is doing.
 
-- **Live on CODD:** https://codd.cs.gsu.edu/~anuni1/Project02_VaultSentinel/
-- **Repository:** https://github.com/nuniaishwaryachowdary17/Project02_VaultSentinel
+- **Live on CODD:** https://codd.cs.gsu.edu/~anuni1/Nuni_VaultSentinel/
+- **Repository:** https://github.com/nuniaishwaryachowdary17/Nuni_VaultSentinel
 
 ## Team
 
@@ -48,7 +48,7 @@ Sentinel only reads game state stored in `$_SESSION`. It never solves anything f
 
 - **Mistake feedback.** A wrong answer is compared with notes kept alongside the puzzle. Room 1 says too high, too low, or that you skipped ahead a step. Room 2 says you shifted the right way by the wrong amount, shifted the wrong way, or how many words are already right. Room 3 says you mirrored the grid instead of turning it, or how many of the nine cells are right.
 - **Graded hints.** Three per room, from a nudge to a near give-away, at 100 points each. A fourth request costs nothing and says none are left.
-- **Lock.** Three wrong answers in a row seal the answer box for 30 seconds. The lock is checked on the server, so a forged POST during the lock is refused. The page refreshes itself with a `<meta>` refresh when the lock ends.
+- **Brute-force detector.** Three wrong answers in a row trigger a "Suspicious activity detected" warning and seal both the answer box and the hint button for 30 seconds. The lock is checked on the server, so a forged POST during the lock is refused. The page refreshes itself with a `<meta>` refresh when the lock ends.
 - **Security Clearance meter.** Starts at 50%, +15 per clean solve (no wrong answers, no hints), −5 per wrong answer, −10 per hint, kept between 0 and 100.
 
 **Graduate extension: adaptive tiers**
@@ -69,6 +69,23 @@ The escape screen shows each room's tier, time, wrong answers and hints, CSS bar
 - **Speed Runner**: finished in under five minutes with at most one hint.
 - **Methodical Solver**: everyone else.
 
+**Post-game forensics** (escape screen): the critical bottleneck room (most time), the room with the most hint requests, the full penalty breakdown, and a "What Sentinel learned about you" paragraph built from session data (`sentinel_forensics()` in `includes/sentinel.php`).
+
+### Topic variables and where they live
+
+The topic page names some session keys. We grouped run state under one `$_SESSION['run']` array so starting or abandoning a run resets everything at once:
+
+| Topic page | Vault Sentinel |
+|---|---|
+| `$_SESSION['room']` | `$_SESSION['run']['room']`, incremented only by `advance_run()` after a correct answer |
+| `$_SESSION['score']` | computed by `score_breakdown()` from the run's wrong answers, hints and time |
+| `$_SESSION['hint_ptr'][$room_id]` | `$_SESSION['run']['rooms'][$n]['hints']` |
+| `$_SESSION['wrong_attempts'][$room_id]` | `$_SESSION['run']['rooms'][$n]['wrong']` and `['wrong_streak']` |
+| `$_SESSION['lockout_until'][$room_id]` | `$_SESSION['run']['rooms'][$n]['locked_until']` |
+| `$_SESSION['vault']['cipher_key']` | the cipher shift, derived from `$_SESSION['run']['seed']` so the same run always gets the same puzzle |
+| `$_SESSION['vault']['difficulty_level']` | `$_SESSION['run']['rooms'][$n]['tier']` |
+| session leaderboard | `$_SESSION['scores'][]` |
+
 ## Security
 
 - `session_start()` runs once, in `includes/config.php`, with strict mode, `HttpOnly` and `SameSite=Lax` cookies.
@@ -81,7 +98,11 @@ The escape screen shows each room's tier, time, wrong answers and hints, CSS bar
 
 ## Design and accessibility
 
-The interface is pure HTML and CSS, with no JavaScript. The motion is all CSS: drifting dust particles, a rotating searchlight, a perspective grid floor, film grain, word-by-word heading reveals, gilded animated panel borders, and a 3D vault door that spins its wheel and swings open after every solved room.
+The interface is pure HTML and CSS, with no JavaScript, as the rubric requires. The motion is all CSS: drifting dust particles, a rotating searchlight, a perspective grid floor, film grain, word-by-word heading reveals, gilded animated panel borders, and a 3D vault door that spins its wheel and swings open after every solved room.
+
+A second motion layer adds smooth page-to-page transitions (cross-document View Transitions), drifting backdrop text that changes with each room, Sentinel messages that type themselves out, a red alarm flash on wrong answers with a pulsing siren during the lock, a clearance meter that turns red when low, gold sparks after each door opens, a count-up score and confetti on the escape screen, 3D tilt on cards, button ripples, and a crown on the leaderboard's top run.
+
+A third layer adds real CSS 3D depth: an extruded vault door (stacked discs, a wheel on an axle) that turns slowly behind the frosted login panel, room cards that unfold in 3D in the Entry Hall, a spinning gold medal showing the escape profile, and a closer dust layer for parallax.
 
 - Mobile first, with Grid for page layout, Flexbox inside components, and breakpoints at 600 px and 960 px. No sideways scrolling at 360 px.
 - Every control has a label, focus is always visible, and the pattern grid works from the keyboard.
@@ -101,20 +122,21 @@ leaderboard.php  top ten runs this session
 team.php         team introduction
 logout.php       ends the session (POST only)
 router.php       router for `php -S` local testing only; blocks data/ and includes/
-includes/        config, auth guard, CSRF, header/footer, user store,
+includes/        (.htaccess denies web access) config, auth guard, CSRF, header/footer, user store,
                  puzzles, run flow, scoring, sentinel
 css/             style.css (base, layout, backdrop), rooms.css (game, door, report)
 data/            users.json (created on first sign-up), .htaccess
-docs/            test_plan.md
+docs/            design.md (UML + pseudocode), uml.png, test_plan.md, bug_log.md,
+                 schedule_and_communication.md, sprint_log.md, standups/, journal.md, time_log.md
 ```
 
 ## Setup
 
 **On CODD**
 
-1. Upload the folder to `~/public_html/Project02_VaultSentinel/`.
+1. Upload the folder to `~/public_html/Nuni_VaultSentinel/`.
 2. Make the data folder writable by the web server: `chmod 733 data` (or `777` if sign-up still fails).
-3. Check that `https://codd.cs.gsu.edu/~anuni1/Project02_VaultSentinel/data/users.json` returns 403 Forbidden.
+3. Check that `https://codd.cs.gsu.edu/~anuni1/Nuni_VaultSentinel/data/users.json` returns 403 Forbidden.
 
 **Locally** (PHP 8.0 or newer)
 

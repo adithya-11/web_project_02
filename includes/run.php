@@ -57,10 +57,12 @@ function run_destination(): string
 
 function record_run(array $run, string $user): void
 {
-    if ($run['finished_at'] === null) {
+    // Only finished runs count, and each run is recorded once even if escape.php is reloaded.
+    if ($run['finished_at'] === null || isset($_SESSION['recorded_runs'][$run['id']])) {
         return;
     }
-    $_SESSION['leaderboard'][$run['id']] ??= [
+    $_SESSION['recorded_runs'][$run['id']] = true;
+    $_SESSION['scores'][] = [
         'name' => $user,
         'score' => score_breakdown($run, true)['total'],
         'seconds' => $run['finished_at'] - $run['started_at'],
@@ -72,7 +74,8 @@ function record_run(array $run, string $user): void
 
 function top_runs(): array
 {
-    $runs = array_values($_SESSION['leaderboard'] ?? []);
+    // Sort by score (high first), break ties by time (fast first), keep the top ten.
+    $runs = $_SESSION['scores'] ?? [];
     usort($runs, static fn (array $a, array $b): int =>
         ($b['score'] <=> $a['score']) ?: ($a['seconds'] <=> $b['seconds']));
     return array_slice($runs, 0, 10);

@@ -10,6 +10,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+html { overflow-x: clip; }
 
 body {
     --ink: #05070a;
@@ -728,3 +729,152 @@ td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 }
 
 body[data-theme="contrast"] .display .w { background: none; color: var(--text); }
+
+/* ==========================================================================
+   Motion layer 2 · all CSS, all decorative, all respect reduced motion
+   ========================================================================== */
+
+/* Smooth page-to-page transitions (cross-document View Transitions, no JS). */
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+}
+.site-header { view-transition-name: site-header; }
+.ticker { view-transition-name: site-ticker; }
+::view-transition-old(root) { animation: vt-out 320ms cubic-bezier(0.4, 0, 1, 1) both; }
+::view-transition-new(root) { animation: vt-in 560ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes vt-out { to { opacity: 0; transform: translateY(-10px) scale(0.985); filter: blur(6px); } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(14px) scale(1.01); filter: blur(8px); } }
+
+/* Brand shimmer */
+.brand em {
+    background: linear-gradient(100deg, var(--gold-lo), var(--gold-hi) 40%, var(--gold) 60%, var(--gold-lo)) 0 0 / 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gilt 6s linear infinite;
+}
+body[data-theme="contrast"] .brand em { background: none; color: var(--gold); }
+
+/* Button ripple and a breathing halo on the main call to action */
+.btn::before {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 12px; height: 12px;
+    margin: -6px;
+    z-index: -1;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    pointer-events: none;
+}
+.btn:active::before { animation: ripple 650ms ease-out; }
+@keyframes ripple {
+    from { opacity: 0.7; transform: scale(0); }
+    to { opacity: 0; transform: scale(30); }
+}
+.btn--primary { animation: halo 3.2s ease-in-out infinite; }
+@keyframes halo {
+    0%, 100% { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 10px 30px -10px rgba(241, 180, 80, 0.7), 0 0 0 0 rgba(241, 201, 124, 0); }
+    50% { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 10px 30px -10px rgba(241, 180, 80, 0.7), 0 0 0 7px rgba(241, 201, 124, 0.08); }
+}
+
+/* Focused fields get a light that scans along the bottom edge */
+.field:focus {
+    background:
+        linear-gradient(90deg, transparent, var(--gold-hi), transparent) no-repeat -40% 100% / 40% 2px,
+        rgba(0, 0, 0, 0.55);
+    animation: field-scan 1.8s linear infinite;
+}
+@keyframes field-scan { to { background-position: 140% 100%, 0 0; } }
+
+/* 3D tilt and a light sweep on cards */
+.room-card, .member, .stats div, .rules li {
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+.room-card::after, .member::after, .rules li::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 35%, rgba(255, 240, 200, 0.12) 50%, transparent 65%);
+    transform: translateX(-110%);
+    transition: transform 900ms var(--ease-out);
+    pointer-events: none;
+}
+.room-card:hover::after, .member:hover::after, .rules li:hover::after { transform: translateX(110%); }
+.room-card:hover { transform: perspective(700px) rotateX(3deg) rotateY(-5deg) translateX(4px); }
+.member:hover { transform: perspective(800px) rotateX(5deg) rotateY(-6deg) translateY(-6px); }
+.member:hover .member__badge { animation: badge-spin 900ms var(--ease-spring); }
+@keyframes badge-spin { from { transform: rotateY(0); } to { transform: rotateY(360deg); } }
+
+/* Scroll-driven reveals where the browser supports them */
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+        .rules li, .changes__item, .breakdown div, .feature-list li {
+            animation: rise linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 45%;
+        }
+    }
+}
+
+/* Champion crown on the leaderboard */
+.champion { position: relative; overflow: hidden; }
+.champion::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 240, 200, 0.16) 50%, transparent 60%);
+    transform: translateX(-100%);
+    animation: sweep-x 4.5s 1.5s ease-in-out infinite;
+    pointer-events: none;
+}
+.champion__crown {
+    position: absolute;
+    top: 0.6rem; left: 1.9rem;
+    font-size: 1.4rem;
+    color: var(--gold);
+    text-shadow: 0 0 14px rgba(241, 201, 124, 0.9);
+    animation: crown 2.6s ease-in-out infinite;
+}
+@keyframes crown {
+    0%, 100% { transform: translateY(0) rotate(-8deg); }
+    50% { transform: translateY(-5px) rotate(8deg); }
+}
+@keyframes sweep-x { 0% { transform: translateX(-100%); } 60%, 100% { transform: translateX(100%); } }
+
+/* Orbits around the login vault door */
+.hero-door { --size: 26rem; }
+.orbit {
+    position: absolute;
+    left: 50%; top: 50%;
+    border-radius: 50%;
+    border: 1px dashed rgba(241, 201, 124, 0.45);
+    pointer-events: none;
+}
+.orbit--a { width: 125%; height: 125%; margin: -62.5% 0 0 -62.5%; animation: sweep 40s linear infinite; }
+.orbit--b { width: 150%; height: 150%; margin: -75% 0 0 -75%; border-style: dotted; animation: sweep 60s linear infinite reverse; }
+.orbit--a::after {
+    content: "";
+    position: absolute;
+    top: -5px; left: 50%;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--gold-hi);
+    box-shadow: 0 0 16px 4px rgba(241, 201, 124, 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .orbit, .champion__crown, .champion::after, .btn--primary, .brand em, .field:focus { animation: none !important; }
+}
+
+/* Motion layer 3: a closer, softer dust layer for parallax depth */
+.scene__dust--close {
+    background-size: 520px 520px;
+    opacity: 0.35;
+    filter: blur(1.5px);
+    animation-duration: 38s;
+    transform: scale(1.8);
+}

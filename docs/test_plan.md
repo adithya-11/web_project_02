@@ -27,6 +27,15 @@ Tested on November 18, 2026 with PHP 8.3 (`php -S` and `router.php`) and headles
 | Room 3 (Tier 2 or 3), mirrored grid | "You mirrored the grid. Sentinel expected it to turn, not flip." |
 | Room 3, other wrong grid | "7 of 9 cells are right." |
 
+## Extra AI checks (added in the final sprint)
+
+| # | Input | Expected | Actual | Result |
+|---|---|---|---|---|
+| 10 | Request a hint while the 30 s lock is active | Refused with "Suspicious activity detected", no deduction; the button reads "Hints locked" | As expected; hint count and score unchanged | Pass |
+| 11 | Finish a run with Room 2 slowest and 2 hints used in Room 1 | Forensics names Room 2 as the bottleneck and Room 1 as the most-hinted room | As expected | Pass |
+| 12 | Finish a run where every room took the same time | Summary says the time was about the same in every room, not "quickest and slowest in the same room" | As expected after the fix | Pass |
+| 13 | Reload `escape.php` several times | Leaderboard still has one row for the run | One row | Pass |
+
 ## UI test cases
 
 | # | Check | Result |

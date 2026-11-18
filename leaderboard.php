@@ -18,7 +18,7 @@ require __DIR__ . '/includes/header.php';
 <?php else: ?>
     <?php $top = $runs[0]; ?>
     <section class="champion panel panel--glow reveal" style="--d:1" aria-label="Top escape">
-        <span class="champion__rank" aria-hidden="true">01</span>
+        <span class="champion__crown" aria-hidden="true">♛</span><span class="champion__rank" aria-hidden="true">01</span>
         <div>
             <p class="eyebrow">Top escape</p>
             <p class="champion__name"><?= e($top['name']) ?></p>

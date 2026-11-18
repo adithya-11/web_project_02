@@ -40,14 +40,10 @@ require __DIR__ . '/includes/header.php';
         <li style="--i:1"><span class="feature-list__n">02</span> The Cipher Gate <span class="muted">· shifted phrases</span></li>
         <li style="--i:2"><span class="feature-list__n">03</span> The Pattern Lock <span class="muted">· hidden grid rules</span></li>
     </ul>
-    <div class="hero-door" aria-hidden="true">
-        <div class="vault-door vault-door--idle">
-            <div class="vault-door__ring"></div>
-            <div class="vault-door__wheel"><i></i><i></i><i></i></div>
-            <div class="vault-door__bolts"></div>
-        </div>
-    </div>
 </section>
+<div class="auth-stage">
+    <span class="orbit orbit--a" aria-hidden="true"></span><span class="orbit orbit--b" aria-hidden="true"></span>
+    <?= vault3d('vault3d--hero') ?>
 <section class="panel panel--glow auth reveal" style="--d:2" aria-labelledby="login-title">
     <h2 id="login-title" class="panel__title">Agent login</h2>
     <?php if ($notice !== ''): ?><p class="feedback feedback--ok" role="status"><?= e($notice) ?></p><?php endif; ?>
@@ -66,5 +62,6 @@ require __DIR__ . '/includes/header.php';
     </form>
     <p class="muted small">New here? <a href="register.php">Create an account</a></p>
 </section>
+</div>
 </div>
 <?php require __DIR__ . '/includes/footer.php'; ?>

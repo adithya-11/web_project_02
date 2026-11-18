@@ -225,3 +225,51 @@ function sentinel_clearance(array $run): int
     }
     return max(0, min(100, $value));
 }
+
+/* ---------- Graduate extension: post-game forensics report ---------- */
+
+/*
+ * Reads the finished run and returns the bottleneck room (most time),
+ * the room where the most hints were requested, and a short
+ * "What Sentinel learned about you" paragraph built only from session data.
+ */
+function sentinel_forensics(array $run, array $times): array
+{
+    $slowest = array_search(max($times), $times, true);
+
+    $hintsByRoom = array_column($run['rooms'], 'hints');
+    $hintRoom = null;
+    if (max($hintsByRoom) > 0) {
+        $hintRoom = array_keys($run['rooms'])[array_search(max($hintsByRoom), $hintsByRoom, true)];
+    }
+
+    $wrong = array_sum(array_column($run['rooms'], 'wrong'));
+    $hints = array_sum($hintsByRoom);
+    $fastest = array_search(min($times), $times, true);
+    $tiers = array_column($run['rooms'], 'tier');
+
+    $sentences = [];
+    $sentences[] = $fastest === $slowest || $times[$fastest] === $times[$slowest]
+        ? 'You spent about the same time in every room (' . format_time($times[$slowest]) . ' each).'
+        : 'You were quickest in ' . ROOMS[$fastest] . ' (' . format_time($times[$fastest]) . ') and slowest in '
+            . ROOMS[$slowest] . ' (' . format_time($times[$slowest]) . ').';
+    if ($wrong === 0) {
+        $sentences[] = 'You never submitted a wrong answer, so you check your work before trying a lock.';
+    } elseif ($wrong >= 4) {
+        $sentences[] = 'You gave ' . $wrong . ' wrong answers, which suggests you test ideas by trying them on the lock.';
+    } else {
+        $sentences[] = 'You made ' . $wrong . ' wrong ' . ($wrong === 1 ? 'answer' : 'answers') . ' and corrected course from the feedback.';
+    }
+    $sentences[] = $hints === 0
+        ? 'You solved every room without a hint.'
+        : 'You asked for ' . $hints . ' ' . ($hints === 1 ? 'hint' : 'hints') . ', most of them in ' . ROOMS[$hintRoom] . '.';
+    $sentences[] = max($tiers) === 3
+        ? 'You reached Tier 3, the hardest difficulty.'
+        : 'Your highest tier was ' . max($tiers) . '; a faster, hint-free room would push you higher.';
+
+    return [
+        'slowest' => $slowest,
+        'hint_room' => $hintRoom,
+        'summary' => implode(' ', $sentences),
+    ];
+}

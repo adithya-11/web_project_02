@@ -23,7 +23,7 @@ if (is_post()) {
 
     // The lock lives in the session, so a forged form sent during it is refused too.
     if (sentinel_lock_left($room, $now) > 0) {
-        $_SESSION['room_feedback'] = ['lock', 'The answer box is sealed. Wait for the lock to clear.', null];
+        $_SESSION['room_feedback'] = ['lock', 'Suspicious activity detected. The answer box is sealed until the lock clears.', null];
         redirect('room.php');
     }
 
@@ -88,7 +88,19 @@ require __DIR__ . '/includes/header.php';
     </div>
 <?php endif; ?>
 
+<?php if ($feedbackType === 'wrong' || $feedbackType === 'lock'): ?>
+    <div class="alarm-flash<?= $lockLeft > 0 ? ' alarm-flash--lock' : '' ?>" aria-hidden="true"></div>
+<?php endif; ?>
+<?php if ($doorOpen): ?><?= particles(26, 'burst-particles', $roomKey) ?><?php endif; ?>
+
 <section class="room-hero reveal">
+    <div class="ambient ambient--<?= e($puzzle['type']) ?>" aria-hidden="true">
+        <span><?= e(str_repeat(match ($puzzle['type']) {
+            'number' => '1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 ',
+            'phrase' => 'ROT · CAESAR · SHIFT · ABCDEFGHIJKLMNOPQRSTUVWXYZ · ',
+            'grid' => '■ □ ■ □ □ ■ □ ■ ■ □ ■ □ ',
+        }, 2)) ?></span>
+    </div>
     <p class="eyebrow">Room <?= e($number) ?> of <?= e(count(ROOMS)) ?> · Tier <?= e($room['tier']) ?></p>
     <h1 class="display"><?= reveal($title) ?></h1>
     <ol class="door-rail" aria-label="Vault progress">
@@ -103,7 +115,7 @@ require __DIR__ . '/includes/header.php';
 </section>
 
 <?php if ($tierNotice !== ''): ?>
-    <p class="transmission reveal" role="status"><span class="transmission__tag">Sentinel</span> <?= e($tierNotice) ?></p>
+    <p class="transmission reveal" role="status"><span class="transmission__tag">Sentinel</span> <span class="typewriter"><?= e($tierNotice) ?></span></p>
 <?php endif; ?>
 
 <div class="room-layout">
@@ -167,8 +179,8 @@ require __DIR__ . '/includes/header.php';
     <?php endif; ?>
 
     <?php if ($lockLeft > 0): ?>
-        <div class="lock" role="status">
-            <p><strong>Answer box sealed.</strong> It reopens in <?= e($lockLeft) ?> seconds and this page refreshes on its own.</p>
+        <div class="lock" role="status"><span class="lock__siren" aria-hidden="true"></span>
+            <p><strong>Suspicious activity detected.</strong> Three wrong answers in a row: the answer box and hints are sealed. They reopen in <?= e($lockLeft) ?> seconds and this page refreshes on its own.</p>
             <div class="lock__bar" style="--lock:<?= e($lockLeft) ?>s"><span></span></div>
         </div>
     <?php endif; ?>
@@ -206,7 +218,7 @@ require __DIR__ . '/includes/header.php';
         </div>
     </div>
 
-    <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= e($clearance) ?>" aria-label="Security clearance">
+    <div class="meter meter--<?= $clearance < 30 ? 'low' : ($clearance >= 75 ? 'high' : 'mid') ?>" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= e($clearance) ?>" aria-label="Security clearance">
         <div class="meter__label"><span>Security clearance</span><strong><?= e($clearance) ?>%</strong></div>
         <div class="meter__track"><span style="--v:<?= e($clearance) ?>%"></span></div>
     </div>
@@ -232,8 +244,8 @@ require __DIR__ . '/includes/header.php';
         <form method="post" action="hint.php">
             <?= csrf_field() ?>
             <input type="hidden" name="room_key" value="<?= e($roomKey) ?>">
-            <button type="submit" class="btn btn--ghost btn--block">
-                <?= $room['hints'] < MAX_HINTS ? 'Request hint ' . e($room['hints'] + 1) : 'No hints left' ?>
+            <button type="submit" class="btn btn--ghost btn--block"<?= $lockLeft > 0 ? ' disabled' : '' ?>>
+                <?= $lockLeft > 0 ? 'Hints locked' : ($room['hints'] < MAX_HINTS ? 'Request hint ' . e($room['hints'] + 1) : 'No hints left') ?>
             </button>
         </form>
     </section>

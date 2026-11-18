@@ -17,6 +17,7 @@
     <div class="scene__beam"></div>
     <div class="scene__dust scene__dust--near"></div>
     <div class="scene__dust scene__dust--far"></div>
+    <div class="scene__dust scene__dust--close"></div>
     <div class="scene__floor"></div>
     <div class="scene__grain"></div>
 </div>

@@ -20,6 +20,7 @@ foreach ($run['rooms'] as $number => $room) {
     $times[$number] = $room['solved_at'] - $room['entered_at'];
 }
 $longest = max(1, ...array_values($times));
+$forensics = sentinel_forensics($run, $times);
 $title = 'Vault Open';
 require __DIR__ . '/includes/header.php';
 ?>
@@ -35,11 +36,19 @@ require __DIR__ . '/includes/header.php';
     </div>
 <?php endif; ?>
 
+<?= particles(36, 'confetti', $run['id']) ?>
 <section class="escape-hero reveal">
     <div class="burst" aria-hidden="true"></div>
     <p class="eyebrow">Run complete · <?= e(format_time($elapsed)) ?></p>
     <h1 class="display display--xl"><?= reveal('The vault is open') ?></h1>
-    <p class="score-big"><span class="score-big__value"><?= e(number_format($score['total'])) ?></span> <span class="score-big__unit">points</span></p>
+    <p class="score-big"><span class="score-big__value count-up" style="--to:<?= e($score['total']) ?>" aria-hidden="true"></span><span class="sr-only"><?= e(number_format($score['total'])) ?></span> <span class="score-big__unit">points</span></p>
+    <div class="medal reveal" style="--d:3" aria-hidden="true">
+        <div class="medal__coin">
+            <?php for ($z = -6; $z <= 6; $z += 2): ?><i class="medal__edge" style="--z:<?= e($z) ?>px"></i><?php endfor; ?>
+            <span class="medal__face medal__face--front"><?= e(implode('', array_map(static fn (string $w): string => $w[0], preg_split('/[\s-]+/', $profile)))) ?></span>
+            <span class="medal__face medal__face--back">VS</span>
+        </div>
+    </div>
     <p class="profile-badge"><span>Sentinel profile</span> <strong><?= e($profile) ?></strong></p>
     <p class="muted"><?= e($profileNote) ?></p>
 </section>
@@ -87,6 +96,14 @@ require __DIR__ . '/includes/header.php';
                 </li>
             <?php endforeach; ?>
         </ul>
+
+        <h3>Forensics</h3>
+        <dl class="breakdown forensics">
+            <div class="is-neg"><dt>Critical bottleneck</dt><dd><?= e(ROOMS[$forensics['slowest']]) ?> · <?= e(format_time($times[$forensics['slowest']])) ?></dd></div>
+            <div><dt>Most hints requested</dt><dd><?= e($forensics['hint_room'] === null ? 'None' : ROOMS[$forensics['hint_room']] . ' · ' . $run['rooms'][$forensics['hint_room']]['hints']) ?></dd></div>
+        </dl>
+        <h3>What Sentinel learned about you</h3>
+        <p class="muted learned"><?= e($forensics['summary']) ?></p>
 
         <h3>Tier changes</h3>
         <ol class="changes">

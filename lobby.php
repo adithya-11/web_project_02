@@ -84,7 +84,7 @@ require __DIR__ . '/includes/header.php';
         <li><strong>−100</strong> for each hint. Each room has three, from a nudge to a near give-away.</li>
         <li><strong>+10</strong> per second under a 10-minute par, up to 500.</li>
         <li><strong>+75</strong> per tier above Tier 1 for every room you clear.</li>
-        <li>Three wrong answers in a row seal the answer box for <strong>30 seconds</strong>.</li>
+        <li>Three wrong answers in a row trip Sentinel’s brute-force detector: the answer box and hints are sealed for <strong>30 seconds</strong>.</li>
     </ul>
     <h3>Appearance</h3>
     <form method="post" action="lobby.php" class="actions">
