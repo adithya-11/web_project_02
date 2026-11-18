@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($title) ?> | Vault Sentinel</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/rooms.css">
 </head>
-<body>
+<body data-theme="<?= e(vault_theme()) ?>">
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
     <a href="index.php">Vault Sentinel</a>

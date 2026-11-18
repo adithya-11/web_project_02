@@ -32,3 +32,9 @@ function post_string(string $name): string
     $value = filter_input(INPUT_POST, $name, FILTER_UNSAFE_RAW);
     return is_string($value) ? $value : '';
 }
+
+function vault_theme(): string
+{
+    $theme = filter_input(INPUT_COOKIE, 'vault_theme', FILTER_UNSAFE_RAW);
+    return in_array($theme, ['dark', 'contrast'], true) ? $theme : 'dark';
+}
