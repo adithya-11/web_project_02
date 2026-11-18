@@ -189,3 +189,39 @@ function sentinel_profile(array $run): array
     }
     return ['Methodical Solver', 'Steady and careful. You worked each lock through on your own.'];
 }
+
+/* ---------- Lock after three wrong answers in a row ---------- */
+
+const LOCK_STREAK = 3;
+const LOCK_SECONDS = 30;
+
+function sentinel_lock_left(array $room, int $now): int
+{
+    return max(0, $room['locked_until'] - $now);
+}
+
+function sentinel_register_wrong(array &$room, int $now): bool
+{
+    $room['wrong']++;
+    $room['wrong_streak']++;
+    if ($room['wrong_streak'] >= LOCK_STREAK) {
+        $room['wrong_streak'] = 0;
+        $room['locked_until'] = $now + LOCK_SECONDS;
+        return true;
+    }
+    return false;
+}
+
+/* ---------- Security Clearance meter ---------- */
+
+function sentinel_clearance(array $run): int
+{
+    $value = 50;
+    foreach ($run['rooms'] as $room) {
+        $value -= 5 * $room['wrong'] + 10 * $room['hints'];
+        if ($room['solved_at'] !== null && $room['wrong'] === 0 && $room['hints'] === 0) {
+            $value += 15;
+        }
+    }
+    return max(0, min(100, $value));
+}

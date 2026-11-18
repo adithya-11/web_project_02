@@ -36,22 +36,34 @@ if (is_post()) {
 $title = 'Create an account';
 require __DIR__ . '/includes/header.php';
 ?>
-<section class="panel">
-    <h1>Create an account</h1>
-    <?php if (isset($errors['form'])): ?><p role="alert"><?= e($errors['form']) ?></p><?php endif; ?>
-    <form method="post" action="register.php">
+<div class="narrow">
+<section class="panel panel--glow auth reveal" aria-labelledby="register-title">
+    <p class="eyebrow">New agent</p>
+    <h1 id="register-title" class="display"><?= reveal('Create an account') ?></h1>
+    <?php if (isset($errors['form'])): ?><p class="feedback feedback--wrong" role="alert"><?= e($errors['form']) ?></p><?php endif; ?>
+    <form method="post" action="register.php" class="stack" novalidate>
         <?= csrf_field() ?>
-        <label for="username">Username</label>
-        <input id="username" name="username" value="<?= e($username) ?>" maxlength="20" autocomplete="username" aria-describedby="username-note" required>
-        <p id="username-note"><?= e($errors['username'] ?? '3–20 letters, digits, or underscores.') ?></p>
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="new-password" aria-describedby="password-note" minlength="8" required>
-        <p id="password-note"><?= e($errors['password'] ?? 'At least 8 characters.') ?></p>
-        <label for="confirmation">Confirm password</label>
-        <input id="confirmation" name="confirmation" type="password" autocomplete="new-password" aria-describedby="confirmation-note" required>
-        <p id="confirmation-note"><?= e($errors['confirmation'] ?? '') ?></p>
-        <button type="submit">Register</button>
+        <div>
+            <label for="username" class="field-label">Username</label>
+            <input id="username" name="username" class="field" value="<?= e($username) ?>" maxlength="20" autocomplete="username" aria-describedby="username-note" required
+                <?= isset($errors['username']) ? 'aria-invalid="true"' : '' ?>>
+            <p id="username-note" class="note<?= isset($errors['username']) ? ' note--error' : '' ?>"><?= e($errors['username'] ?? '3–20 letters, digits, or underscores.') ?></p>
+        </div>
+        <div>
+            <label for="password" class="field-label">Password</label>
+            <input id="password" name="password" class="field" type="password" autocomplete="new-password" aria-describedby="password-note" minlength="8" required
+                <?= isset($errors['password']) ? 'aria-invalid="true"' : '' ?>>
+            <p id="password-note" class="note<?= isset($errors['password']) ? ' note--error' : '' ?>"><?= e($errors['password'] ?? 'At least 8 characters.') ?></p>
+        </div>
+        <div>
+            <label for="confirmation" class="field-label">Confirm password</label>
+            <input id="confirmation" name="confirmation" class="field" type="password" autocomplete="new-password" aria-describedby="confirmation-note" required
+                <?= isset($errors['confirmation']) ? 'aria-invalid="true"' : '' ?>>
+            <p id="confirmation-note" class="note<?= isset($errors['confirmation']) ? ' note--error' : '' ?>"><?= e($errors['confirmation'] ?? 'Type the same password again.') ?></p>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Register</button>
     </form>
-    <p><a href="index.php">Back to login</a></p>
+    <p class="muted small">Already registered? <a href="index.php">Back to login</a></p>
 </section>
+</div>
 <?php require __DIR__ . '/includes/footer.php'; ?>

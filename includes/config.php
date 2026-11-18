@@ -38,3 +38,18 @@ function vault_theme(): string
     $theme = filter_input(INPUT_COOKIE, 'vault_theme', FILTER_UNSAFE_RAW);
     return in_array($theme, ['dark', 'contrast'], true) ? $theme : 'dark';
 }
+
+/* Wraps each word in a span so CSS can stagger a word-by-word reveal. */
+function reveal(string $text): string
+{
+    $html = '';
+    foreach (preg_split('/\s+/', trim($text)) as $index => $word) {
+        $html .= '<span class="w" style="--i:' . $index . '">' . e($word) . '</span> ';
+    }
+    return '<span class="sr-only">' . e($text) . '</span><span aria-hidden="true">' . rtrim($html) . '</span>';
+}
+
+function nav_current(string $page): string
+{
+    return basename($_SERVER['SCRIPT_NAME'] ?? '') === $page ? ' aria-current="page"' : '';
+}

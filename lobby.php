@@ -22,6 +22,7 @@ if (is_post()) {
             redirect('lobby.php');
             break;
         case 'start':
+            unset($_SESSION['door_open'], $_SESSION['hint_notice']);
             if (!isset($_SESSION['run']) || $_SESSION['run']['finished_at'] !== null) {
                 start_run(time());
             }
@@ -31,7 +32,7 @@ if (is_post()) {
             redirect(run_destination());
             break;
         case 'abandon':
-            unset($_SESSION['run'], $_SESSION['room_feedback'], $_SESSION['door_open']);
+            unset($_SESSION['run'], $_SESSION['room_feedback'], $_SESSION['door_open'], $_SESSION['hint_notice']);
             redirect('lobby.php');
             break;
         default:
@@ -44,40 +45,56 @@ $active = $run !== null && $run['finished_at'] === null;
 $title = 'Vault Entry Hall';
 require __DIR__ . '/includes/header.php';
 ?>
-<h1>Vault Entry Hall</h1>
-<p>Welcome, <?= e($_SESSION['user']) ?>.</p>
-<div class="split">
-<section class="panel">
-    <h2>Vault map</h2>
+<section class="room-hero reveal">
+    <p class="eyebrow">Welcome, agent <?= e($_SESSION['user']) ?></p>
+    <h1 class="display display--xl"><?= reveal('Vault Entry Hall') ?></h1>
+    <p class="lede">Solve each room in order. Sentinel watches how you play and sets the next door's difficulty to match.</p>
+</section>
+<div class="lobby-grid">
+<section class="panel panel--glow reveal" style="--d:1" aria-labelledby="map-title">
+    <h2 id="map-title" class="panel__title">Vault map</h2>
     <ol class="room-map">
         <?php foreach (ROOMS as $number => $name): ?>
-            <li <?= $active && $run['room'] === $number ? 'aria-current="step"' : '' ?>><?= e($name) ?></li>
+            <?php
+            $state = !$active ? 'sealed' : ($number < $run['room'] ? 'open' : ($number === $run['room'] ? 'current' : 'sealed'));
+            ?>
+            <li class="room-card is-<?= $state ?>" style="--i:<?= e($number) ?>"<?= $state === 'current' ? ' aria-current="step"' : '' ?>>
+                <span class="room-card__n"><?= e(sprintf('%02d', $number)) ?></span>
+                <span class="room-card__name"><?= e($name) ?></span>
+                <span class="room-card__state"><?= e(['open' => 'Opened', 'current' => 'You are here', 'sealed' => 'Sealed'][$state]) ?></span>
+            </li>
         <?php endforeach; ?>
     </ol>
     <form method="post" action="lobby.php" class="actions">
         <?= csrf_field() ?>
         <?php if ($active): ?>
-            <button name="action" value="resume">Resume Room <?= e($run['room']) ?></button>
-            <button name="action" value="abandon">Abandon run</button>
+            <button name="action" value="resume" class="btn btn--primary">Resume Room <?= e($run['room']) ?></button>
+            <button name="action" value="abandon" class="btn btn--ghost">Abandon run</button>
         <?php else: ?>
-            <button name="action" value="start"><?= $run === null ? 'Enter the vault' : 'Play again' ?></button>
-            <?php if ($run !== null): ?><a href="escape.php">View last result</a><?php endif; ?>
+            <button name="action" value="start" class="btn btn--primary"><?= $run === null ? 'Enter the vault' : 'Play again' ?></button>
+            <?php if ($run !== null): ?><a class="btn btn--ghost" href="escape.php">View last result</a><?php endif; ?>
         <?php endif; ?>
     </form>
 </section>
-<section class="panel">
-    <h2>Rules and scoring</h2>
-    <p>Solve each room in order. Your run starts at 1,000 points and loses 50 points for each wrong answer.</p>
-    <p>Earn 10 points per second under 10 minutes, up to 500, plus 75 points per tier above Tier 1 for each solved room.</p>
-    <h2>Appearance</h2>
+<section class="panel reveal" style="--d:2" aria-labelledby="rules-title">
+    <h2 id="rules-title" class="panel__title">Rules and scoring</h2>
+    <ul class="rules">
+        <li><strong>1,000</strong> points to start.</li>
+        <li><strong>−50</strong> for each wrong answer. Blank or badly formed answers cost nothing.</li>
+        <li><strong>−100</strong> for each hint. Each room has three, from a nudge to a near give-away.</li>
+        <li><strong>+10</strong> per second under a 10-minute par, up to 500.</li>
+        <li><strong>+75</strong> per tier above Tier 1 for every room you clear.</li>
+        <li>Three wrong answers in a row seal the answer box for <strong>30 seconds</strong>.</li>
+    </ul>
+    <h3>Appearance</h3>
     <form method="post" action="lobby.php" class="actions">
         <?= csrf_field() ?>
-        <label for="theme">Theme</label>
-        <select name="theme" id="theme">
-            <option value="dark" <?= vault_theme() === 'dark' ? 'selected' : '' ?>>Dark</option>
+        <label for="theme" class="sr-only">Theme</label>
+        <select name="theme" id="theme" class="field field--inline">
+            <option value="dark" <?= vault_theme() === 'dark' ? 'selected' : '' ?>>Dark vault</option>
             <option value="contrast" <?= vault_theme() === 'contrast' ? 'selected' : '' ?>>High contrast</option>
         </select>
-        <button name="action" value="theme">Save theme</button>
+        <button name="action" value="theme" class="btn btn--ghost btn--sm">Save theme</button>
     </form>
 </section>
 </div>

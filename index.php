@@ -30,24 +30,41 @@ $notice = take('notice', '');
 $title = 'Log in';
 require __DIR__ . '/includes/header.php';
 ?>
-<div class="split">
-<section>
-    <h1>Vault Sentinel</h1>
-    <p>Three rooms stand between you and the exit. Open each lock in order to escape.</p>
+<div class="hero-split">
+<section class="hero reveal">
+    <p class="eyebrow">Topic 04 · The PHP Vault</p>
+    <h1 class="display display--xl"><?= reveal('Locked in after closing time.') ?></h1>
+    <p class="lede">Three security doors stand between you and the street. Sentinel, the vault's guard program, won't hand you an answer, but it will tell you what kind of mistake you made.</p>
+    <ul class="feature-list">
+        <li style="--i:0"><span class="feature-list__n">01</span> The Ledger <span class="muted">· number sequences</span></li>
+        <li style="--i:1"><span class="feature-list__n">02</span> The Cipher Gate <span class="muted">· shifted phrases</span></li>
+        <li style="--i:2"><span class="feature-list__n">03</span> The Pattern Lock <span class="muted">· hidden grid rules</span></li>
+    </ul>
+    <div class="hero-door" aria-hidden="true">
+        <div class="vault-door vault-door--idle">
+            <div class="vault-door__ring"></div>
+            <div class="vault-door__wheel"><i></i><i></i><i></i></div>
+            <div class="vault-door__bolts"></div>
+        </div>
+    </div>
 </section>
-<section class="panel">
-    <h2>Agent login</h2>
-    <?php if ($notice !== ''): ?><p role="status"><?= e($notice) ?></p><?php endif; ?>
-    <?php if ($error !== ''): ?><p class="error" role="alert"><?= e($error) ?></p><?php endif; ?>
-    <form method="post" action="index.php">
+<section class="panel panel--glow auth reveal" style="--d:2" aria-labelledby="login-title">
+    <h2 id="login-title" class="panel__title">Agent login</h2>
+    <?php if ($notice !== ''): ?><p class="feedback feedback--ok" role="status"><?= e($notice) ?></p><?php endif; ?>
+    <?php if ($error !== ''): ?><p class="feedback feedback--wrong" role="alert"><?= e($error) ?></p><?php endif; ?>
+    <form method="post" action="index.php" class="stack">
         <?= csrf_field() ?>
-        <label for="username">Username</label>
-        <input id="username" name="username" value="<?= e($username) ?>" maxlength="20" autocomplete="username" required>
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required>
-        <button type="submit">Log in</button>
+        <div>
+            <label for="username" class="field-label">Username</label>
+            <input id="username" name="username" class="field" value="<?= e($username) ?>" maxlength="20" autocomplete="username" required>
+        </div>
+        <div>
+            <label for="password" class="field-label">Password</label>
+            <input id="password" name="password" class="field" type="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Enter the vault</button>
     </form>
-    <p><a href="register.php">Create an account</a></p>
+    <p class="muted small">New here? <a href="register.php">Create an account</a></p>
 </section>
 </div>
 <?php require __DIR__ . '/includes/footer.php'; ?>
