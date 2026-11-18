@@ -35,14 +35,14 @@ if (is_post()) {
 
     if ($answer === null) {
         $message = match ($puzzle['type']) {
-            'number' => 'Enter a whole number.',
-            'phrase' => 'Enter a phrase using letters and spaces.',
-            'grid' => 'Select cells using the nine checkboxes.',
+            'number' => 'Enter a whole number, such as 42 or -7. Nothing was deducted.',
+            'phrase' => 'Use letters and single spaces only. Nothing was deducted.',
+            'grid' => 'Select cells using the nine checkboxes. Nothing was deducted.',
         };
     } else {
         $room['wrong']++;
         $room['wrong_streak']++;
-        $message = 'That answer did not open the lock. 50-point penalty.';
+        $message = sentinel_feedback($puzzle, $answer, $room['tier']) . ' 50 points deducted.';
     }
     $_SESSION['room_feedback'] = [$message, $input];
     redirect('room.php');

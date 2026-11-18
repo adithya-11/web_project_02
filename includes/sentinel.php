@@ -64,3 +64,63 @@ function sentinel_hints(array $puzzle, int $room, int $tier): array
         ],
     };
 }
+
+/* ---------- Mistake analysis ---------- */
+
+function mirror_grid(int $mask): int
+{
+    $result = 0;
+    for ($index = 0; $index < 9; $index++) {
+        if (($mask & (1 << $index)) !== 0) {
+            $row = intdiv($index, 3);
+            $result |= 1 << ($row * 3 + (2 - $index % 3));
+        }
+    }
+    return $result;
+}
+
+function sentinel_feedback(array $puzzle, int|string $answer, int $tier): string
+{
+    if ($puzzle['type'] === 'number') {
+        if ($answer === $puzzle['skip_answer']) {
+            return 'You jumped one step too far ahead. Sentinel wants the very next number.';
+        }
+        return $answer > $puzzle['answer']
+            ? 'Too high. The next number is smaller than that.'
+            : 'Too low. The next number is larger than that.';
+    }
+
+    if ($puzzle['type'] === 'phrase') {
+        $cipher = $puzzle['examples'];
+        for ($back = 1; $back < 26; $back++) {
+            if ($back !== $puzzle['shift'] && shift_letters($cipher, -$back) === $answer) {
+                return $back <= 13
+                    ? 'Right direction, wrong amount. You shifted back ' . $back . ' places.'
+                    : 'You shifted the wrong way. Move the letters backward, not forward.';
+            }
+        }
+        $expected = explode(' ', $puzzle['answer']);
+        $given = explode(' ', (string) $answer);
+        $right = 0;
+        foreach ($expected as $position => $word) {
+            if (($given[$position] ?? '') === $word) {
+                $right++;
+            }
+        }
+        if ($right > 0) {
+            return $right . ' of ' . count($expected) . ' words are already right.';
+        }
+        return 'Not quite. Check that every letter moves by the same amount.';
+    }
+
+    $last = $puzzle['examples'][2];
+    $mirror = mirror_grid($last);
+    if ($tier === 3) {
+        $mirror ^= 511;
+    }
+    if ($tier >= 2 && $answer === $mirror) {
+        return 'You mirrored the grid. Sentinel expected it to turn, not flip.';
+    }
+    $right = 9 - substr_count(decbin(((int) $answer ^ $puzzle['answer']) & 511), '1');
+    return $right . ' of 9 cells are right.';
+}
