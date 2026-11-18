@@ -12,6 +12,12 @@ if ($run === null || $run['finished_at'] === null) {
 record_run($run, $_SESSION['user']);
 $score = score_breakdown($run, true);
 $elapsed = $run['finished_at'] - $run['started_at'];
+[$profile, $profileNote] = sentinel_profile($run);
+$times = [];
+foreach ($run['rooms'] as $number => $room) {
+    $times[$number] = $room['solved_at'] - $room['entered_at'];
+}
+$longest = max(1, ...array_values($times));
 $title = 'Vault Open';
 require __DIR__ . '/includes/header.php';
 ?>
@@ -24,6 +30,41 @@ require __DIR__ . '/includes/header.php';
             <dt><?= e($label) ?></dt><dd><?= e(number_format($points)) ?></dd>
         <?php endforeach; ?>
     </dl>
+    <p>Sentinel profile: <strong><?= e($profile) ?></strong>. <?= e($profileNote) ?></p>
+    <h2>Sentinel report</h2>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Room by room report">
+        <table>
+            <thead><tr><th scope="col">Room</th><th scope="col">Tier</th><th scope="col">Time</th><th scope="col">Wrong</th><th scope="col">Hints</th></tr></thead>
+            <tbody>
+            <?php foreach ($run['rooms'] as $number => $room): ?>
+                <tr>
+                    <th scope="row"><?= e(ROOMS[$number]) ?></th>
+                    <td><?= e($room['tier']) ?></td>
+                    <td><?= e(format_time($times[$number])) ?></td>
+                    <td><?= e($room['wrong']) ?></td>
+                    <td><?= e($room['hints']) ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <h3>Time in each room</h3>
+    <ul class="bars">
+        <?php foreach ($times as $number => $seconds): ?>
+            <li>
+                <span class="bars__label">Room <?= e($number) ?></span>
+                <span class="bars__track"><span class="bars__fill" style="--w:<?= e(round($seconds / $longest * 100)) ?>%"></span></span>
+                <span class="bars__value"><?= e(format_time($seconds)) ?></span>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+    <h3>Tier decisions</h3>
+    <ol>
+        <li>Room 1 always starts at Tier 2.</li>
+        <?php foreach ($run['rooms'] as $room): ?>
+            <?php if (!empty($room['change'])): ?><li><?= e($room['change']['text']) ?></li><?php endif; ?>
+        <?php endforeach; ?>
+    </ol>
     <div class="actions">
         <form method="post" action="lobby.php">
             <?= csrf_field() ?>

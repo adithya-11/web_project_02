@@ -174,3 +174,18 @@ function sentinel_explain(int $nextRoom, array $decision): string
     };
     return 'Room ' . $nextRoom . ' ' . $verb . ' because ' . $decision['reason'] . '.';
 }
+
+/* ---------- End-of-run profile ---------- */
+
+function sentinel_profile(array $run): array
+{
+    $hints = array_sum(array_column($run['rooms'], 'hints'));
+    $seconds = $run['finished_at'] - $run['started_at'];
+    if ($hints >= 2) {
+        return ['Hint-Reliant', 'You leaned on ' . $hints . ' hints. Try one room without asking next time.'];
+    }
+    if ($seconds < 300) {
+        return ['Speed Runner', 'Under five minutes with at most one hint. Sentinel is impressed.'];
+    }
+    return ['Methodical Solver', 'Steady and careful. You worked each lock through on your own.'];
+}

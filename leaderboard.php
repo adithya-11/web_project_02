@@ -14,7 +14,7 @@ require __DIR__ . '/includes/header.php';
     <div class="table-wrap" tabindex="0" role="region" aria-label="Ranked escapes">
         <table>
             <caption>Top escapes in this session</caption>
-            <thead><tr><th scope="col">Rank</th><th scope="col">Agent</th><th scope="col">Score</th><th scope="col">Time</th><th scope="col">Hints</th><th scope="col">Tiers</th></tr></thead>
+            <thead><tr><th scope="col">Rank</th><th scope="col">Agent</th><th scope="col">Score</th><th scope="col">Time</th><th scope="col">Hints</th><th scope="col">Tiers</th><th scope="col">Profile</th></tr></thead>
             <tbody>
             <?php foreach ($runs as $index => $entry): ?>
                 <tr>
@@ -24,6 +24,7 @@ require __DIR__ . '/includes/header.php';
                     <td><?= e(format_time($entry['seconds'])) ?></td>
                     <td><?= e($entry['hints']) ?></td>
                     <td><?= e($entry['tiers']) ?></td>
+                    <td><?= e($entry['profile'] ?? '') ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

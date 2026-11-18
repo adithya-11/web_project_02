@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/sentinel.php';
+
 const ROOMS = [1 => 'The Ledger', 2 => 'The Cipher Gate', 3 => 'The Pattern Lock'];
 
 function new_room(int $tier, int $enteredAt): array
@@ -63,7 +65,8 @@ function record_run(array $run, string $user): void
         'score' => score_breakdown($run, true)['total'],
         'seconds' => $run['finished_at'] - $run['started_at'],
         'hints' => array_sum(array_column($run['rooms'], 'hints')),
-        'tiers' => implode(' → ', array_column($run['rooms'], 'tier')),
+        'tiers' => implode(', ', array_column($run['rooms'], 'tier')),
+        'profile' => sentinel_profile($run)[0],
     ];
 }
 
