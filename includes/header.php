@@ -12,6 +12,7 @@
     <a href="index.php">Vault Sentinel</a>
     <nav aria-label="Main navigation">
         <a href="team.php">Team</a>
+        <a href="leaderboard.php">Leaderboard</a>
         <?php if (isset($_SESSION['user'])): ?>
             <a href="lobby.php">Entry Hall</a>
             <?php require_once __DIR__ . '/csrf.php'; ?>
