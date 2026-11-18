@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/config.php';
 $title = 'Team';
 require __DIR__ . '/includes/header.php';
 ?>

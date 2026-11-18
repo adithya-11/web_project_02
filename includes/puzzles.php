@@ -50,6 +50,8 @@ function ledger_puzzle(string $seed, int $tier): array
         'examples' => array_slice($terms, 0, 5),
         'answer' => $terms[5],
         'skip_answer' => $terms[6],
+        'addition' => $addition,
+        'multiplier' => $multiplier,
     ];
 }
 

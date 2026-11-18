@@ -1,7 +1,7 @@
 <?php
-require __DIR__ . '/includes/config.php';
-require __DIR__ . '/includes/csrf.php';
-require __DIR__ . '/includes/users_store.php';
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/users_store.php';
 
 if (is_post()) {
     require_post();

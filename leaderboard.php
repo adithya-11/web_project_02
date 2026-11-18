@@ -1,7 +1,7 @@
 <?php
-require __DIR__ . '/includes/config.php';
-require __DIR__ . '/includes/scoring.php';
-require __DIR__ . '/includes/run.php';
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/scoring.php';
+require_once __DIR__ . '/includes/run.php';
 $runs = top_runs();
 $title = 'Session Leaderboard';
 require __DIR__ . '/includes/header.php';

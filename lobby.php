@@ -1,8 +1,8 @@
 <?php
-require __DIR__ . '/includes/config.php';
-require __DIR__ . '/includes/csrf.php';
-require __DIR__ . '/includes/auth_guard.php';
-require __DIR__ . '/includes/run.php';
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/auth_guard.php';
+require_once __DIR__ . '/includes/run.php';
 
 if (is_post()) {
     require_post();

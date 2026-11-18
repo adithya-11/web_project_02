@@ -1,10 +1,11 @@
 <?php
-require __DIR__ . '/includes/config.php';
-require __DIR__ . '/includes/csrf.php';
-require __DIR__ . '/includes/auth_guard.php';
-require __DIR__ . '/includes/run.php';
-require __DIR__ . '/includes/scoring.php';
-require __DIR__ . '/includes/puzzles.php';
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/auth_guard.php';
+require_once __DIR__ . '/includes/run.php';
+require_once __DIR__ . '/includes/scoring.php';
+require_once __DIR__ . '/includes/puzzles.php';
+require_once __DIR__ . '/includes/sentinel.php';
 
 if (!isset($_SESSION['run']) || $_SESSION['run']['finished_at'] !== null) {
     redirect(run_destination());
@@ -27,7 +28,7 @@ if (is_post()) {
         if ($run['finished_at'] !== null) {
             record_run($run, $_SESSION['user']);
         }
-        unset($_SESSION['room_feedback']);
+        unset($_SESSION['room_feedback'], $_SESSION['hint_notice']);
         $_SESSION['door_open'] = true;
         redirect(run_destination());
     }
@@ -49,6 +50,8 @@ if (is_post()) {
 
 [$message, $input] = take('room_feedback', ['', null]);
 $doorOpen = take('door_open', false);
+$hintNotice = take('hint_notice', '');
+$hints = array_slice(sentinel_hints($puzzle, $number, $room['tier']), 0, $room['hints']);
 $score = score_breakdown($run, false)['total'];
 $title = ROOMS[$number];
 require __DIR__ . '/includes/header.php';
@@ -105,6 +108,19 @@ require __DIR__ . '/includes/header.php';
     <h2>Run status</h2>
     <p>Current score <strong><?= e(number_format($score)) ?></strong></p>
     <p>Wrong answers in this room <strong><?= e($room['wrong']) ?></strong></p>
+    <p>Hints used in this room <strong><?= e($room['hints']) ?> of <?= e(MAX_HINTS) ?></strong></p>
+    <h3>Sentinel hints (−<?= e(HINT_COST) ?> each)</h3>
+    <?php if ($hintNotice !== ''): ?><p role="status"><?= e($hintNotice) ?></p><?php endif; ?>
+    <?php if ($hints !== []): ?>
+        <ol>
+            <?php foreach ($hints as $hint): ?><li><?= e($hint) ?></li><?php endforeach; ?>
+        </ol>
+    <?php endif; ?>
+    <form method="post" action="hint.php">
+        <?= csrf_field() ?>
+        <input type="hidden" name="room_key" value="<?= e($roomKey) ?>">
+        <button type="submit">Request hint</button>
+    </form>
     <a href="lobby.php">Return to the Entry Hall</a>
 </aside>
 </div>
